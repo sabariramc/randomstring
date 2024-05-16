@@ -1,6 +1,6 @@
 # Random String Generator
 
-Random string generator, generates unique random string, based on [stack overflow answer]
+Random string generator, based on [stack overflow answer]. Depending on the length of the string can produce unique random string
 
 [stack overflow answer]: https://stackoverflow.com/a/31832326/3769802
 
