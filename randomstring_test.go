@@ -57,16 +57,15 @@ func ExampleGenerator_onlylowercase() {
 	//true
 }
 
-func TestGenerator(t *testing.T) {
-	totalN := 1000000
-	ch := make(chan string, totalN)
+func generatorDuplicateCheck(t *testing.T, cnt, n int) {
+	ch := make(chan string, cnt)
 	var wg sync.WaitGroup
 	concurrencyFactor := 10000
 	for i := 0; i < concurrencyFactor; i++ {
 		wg.Add(1)
 		go func() {
-			for j := 0; j < totalN/concurrencyFactor; j++ {
-				ch <- randomstring.GenerateWithPrefix(20, "sch_")
+			for j := 0; j < cnt/concurrencyFactor; j++ {
+				ch <- randomstring.Generate(n)
 			}
 			wg.Done()
 		}()
@@ -74,7 +73,7 @@ func TestGenerator(t *testing.T) {
 	wg.Add(1)
 	duplicateCount := 0
 	go func() {
-		idSet := make(map[string]bool, totalN)
+		idSet := make(map[string]bool, cnt)
 		total := 0
 		for id := range ch {
 			if _, ok := idSet[id]; ok {
@@ -82,7 +81,7 @@ func TestGenerator(t *testing.T) {
 			}
 			idSet[id] = true
 			total++
-			if total == totalN {
+			if total == cnt {
 				break
 			}
 		}
@@ -90,6 +89,11 @@ func TestGenerator(t *testing.T) {
 	}()
 	wg.Wait()
 	assert.Equal(t, duplicateCount, 0)
+}
+
+func TestGenerator(t *testing.T) {
+	generatorDuplicateCheck(t, 10000, 5)
+	generatorDuplicateCheck(t, 10000000, 10)
 }
 
 func BenchmarkGenerator(b *testing.B) {
