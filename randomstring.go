@@ -13,39 +13,39 @@ const (
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
-type LetterPollConfig struct {
+type LetterPoolConfig struct {
 	Int       bool
 	UpperCase bool
 	LowerCase bool
 }
 
-var defaultConfig = LetterPollConfig{
+var defaultConfig = LetterPoolConfig{
 	LowerCase: true,
 	UpperCase: true,
 	Int:       true,
 }
 
-type LetterPoolConfig func(*LetterPollConfig)
+type LetterPoolOption func(*LetterPoolConfig)
 
-func WithoutInt() LetterPoolConfig {
-	return func(c *LetterPollConfig) {
+func WithoutInt() LetterPoolOption {
+	return func(c *LetterPoolConfig) {
 		c.Int = false
 	}
 }
 
-func WithoutUpperCase() LetterPoolConfig {
-	return func(c *LetterPollConfig) {
+func WithoutUpperCase() LetterPoolOption {
+	return func(c *LetterPoolConfig) {
 		c.UpperCase = false
 	}
 }
 
-func WithoutLowerCase() LetterPoolConfig {
-	return func(c *LetterPollConfig) {
+func WithoutLowerCase() LetterPoolOption {
+	return func(c *LetterPoolConfig) {
 		c.LowerCase = false
 	}
 }
 
-func GetLetterPoolConfig(options ...LetterPoolConfig) LetterPollConfig {
+func GetLetterPoolConfig(options ...LetterPoolOption) LetterPoolConfig {
 	config := defaultConfig
 	for _, fu := range options {
 		fu(&config)
@@ -53,7 +53,7 @@ func GetLetterPoolConfig(options ...LetterPoolConfig) LetterPollConfig {
 	return config
 }
 
-func GetLetterPool(c LetterPollConfig) string {
+func GetLetterPool(c LetterPoolConfig) string {
 	letterPool := ""
 	if c.LowerCase {
 		letterPool += "abcdefghijklmnopqrstuvwxyz"
@@ -74,7 +74,7 @@ type Generator struct {
 	lock       sync.Mutex
 }
 
-func NewGenerator(options ...LetterPoolConfig) *Generator {
+func NewGenerator(options ...LetterPoolOption) *Generator {
 	config := GetLetterPoolConfig(options...)
 	letterPool := GetLetterPool(config)
 	return &Generator{
