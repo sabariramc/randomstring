@@ -13,39 +13,46 @@ const (
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
-type LetterPoolConfig struct {
-	Int       bool
-	UpperCase bool
-	LowerCase bool
+// Config represents the configuration options for generating random strings.
+type Config struct {
+	Int       bool // Int indicates whether to include integers in the generated string.
+	UpperCase bool // UpperCase indicates whether to include uppercase letters in the generated string.
+	LowerCase bool // LowerCase indicates whether to include lowercase letters in the generated string.
 }
 
-var defaultConfig = LetterPoolConfig{
+// defaultConfig represents the default configuration for generating random strings.
+var defaultConfig = Config{
 	LowerCase: true,
 	UpperCase: true,
 	Int:       true,
 }
 
-type LetterPoolOption func(*LetterPoolConfig)
+// LetterPoolOption represents functional options for configuring the letter pool for generating random strings.
+type LetterPoolOption func(*Config)
 
+// WithoutInt excludes integers from the letter pool when generating random strings.
 func WithoutInt() LetterPoolOption {
-	return func(c *LetterPoolConfig) {
+	return func(c *Config) {
 		c.Int = false
 	}
 }
 
+// WithoutUpperCase excludes uppercase letters from the letter pool when generating random strings.
 func WithoutUpperCase() LetterPoolOption {
-	return func(c *LetterPoolConfig) {
+	return func(c *Config) {
 		c.UpperCase = false
 	}
 }
 
+// WithoutLowerCase excludes lowercase letters from the letter pool when generating random strings.
 func WithoutLowerCase() LetterPoolOption {
-	return func(c *LetterPoolConfig) {
+	return func(c *Config) {
 		c.LowerCase = false
 	}
 }
 
-func GetLetterPoolConfig(options ...LetterPoolOption) LetterPoolConfig {
+// GetLetterPoolConfig returns the configuration for the letter pool based on the provided options.
+func GetLetterPoolConfig(options ...LetterPoolOption) Config {
 	config := defaultConfig
 	for _, fu := range options {
 		fu(&config)
@@ -53,7 +60,8 @@ func GetLetterPoolConfig(options ...LetterPoolOption) LetterPoolConfig {
 	return config
 }
 
-func GetLetterPool(c LetterPoolConfig) string {
+// GetLetterPool returns the letter pool based on the provided configuration.
+func GetLetterPool(c Config) string {
 	letterPool := ""
 	if c.LowerCase {
 		letterPool += "abcdefghijklmnopqrstuvwxyz"
@@ -67,13 +75,14 @@ func GetLetterPool(c LetterPoolConfig) string {
 	return letterPool
 }
 
-// Generator generates a random string of n characters, the generated string will of form ^[A-Za-z0-9]{n}$ by default, charset is customizable using options
+// Generator generates random strings based on the specified letter pool.
 type Generator struct {
 	letterPool string
 	src        *rand.Rand
 	lock       sync.Mutex
 }
 
+// NewGenerator creates a new Generator instance with the specified options for generating random strings.
 func NewGenerator(options ...LetterPoolOption) *Generator {
 	config := GetLetterPoolConfig(options...)
 	letterPool := GetLetterPool(config)
@@ -83,6 +92,7 @@ func NewGenerator(options ...LetterPoolOption) *Generator {
 	}
 }
 
+// Generate generates a random string of n characters using the specified letter pool.
 func (r *Generator) Generate(n int) string {
 	if len(r.letterPool) == 0 {
 		return ""
@@ -105,16 +115,15 @@ func (r *Generator) Generate(n int) string {
 	return string(b)
 }
 
+// defaultRandomNumberGenerator represents the default Generator instance for generating random strings.
 var defaultRandomNumberGenerator = NewGenerator()
 
-// Generate uses default RandomNumberGenerator object to generate random string that matches the regex the generated ^[A-Za-z0-9]{n}$
+// Generate generates a random string of n characters using the default Generator instance.
 func Generate(n int) string {
 	return defaultRandomNumberGenerator.Generate(n)
 }
 
-/*
-GenerateWithPrefix generates a id with the prefix and totalLength
-*/
+// GenerateWithPrefix generates a random string with the specified prefix and total length.
 func GenerateWithPrefix(totalLength int, prefix string) string {
 	n := totalLength - len(prefix)
 	return fmt.Sprintf("%v%v", prefix, Generate(n))
